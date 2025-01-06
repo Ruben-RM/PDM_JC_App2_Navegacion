@@ -187,7 +187,7 @@ fun LoginButton(user: String, password: String, isLoginEnable: Boolean, navContr
     val openAlertDialog = remember{ mutableStateOf(false) }
 
     when {
-        openAlertDialog.value == true ->
+        openAlertDialog.value ->
             DialogErrorLogin(
                 onDismissRequest = { openAlertDialog.value = false },
                 onConfirmation = { openAlertDialog.value = false }
@@ -198,6 +198,8 @@ fun LoginButton(user: String, password: String, isLoginEnable: Boolean, navContr
         onClick = {
             openAlertDialog.value = checkLogin(user, password)
 
+            // Si al pulsar el botón no hay que abrir la ventana de error, es que el login es correcto
+            // Por tanto, se puede pasar a la siguiente pantalla
             if(openAlertDialog.value == false)
                 navController.navigate(Routes.Pantalla2.createRoute(user))
         },

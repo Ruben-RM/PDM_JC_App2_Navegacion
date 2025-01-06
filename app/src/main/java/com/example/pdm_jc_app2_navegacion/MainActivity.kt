@@ -51,6 +51,21 @@ fun Main()
             ) {
                 SecondScreen(navigationController, it.arguments?.getString("user").orEmpty())
             }
+            composable(
+                Routes.Pantalla3.route,
+                arguments = listOf(
+                    navArgument("numeroApostado") { type = NavType.FloatType },
+                    navArgument("numeroIntentos") { type = NavType.StringType })
+            ) {
+                var numApostado = it.arguments?.getFloat("numeroApostado")
+                if(numApostado == null) numApostado = 1f
+
+                ThirdScreen(
+                    navigationController,
+                    numApostado,
+                    it.arguments?.getString("numeroIntentos").orEmpty()
+                )
+            }
         }
     }
 }
