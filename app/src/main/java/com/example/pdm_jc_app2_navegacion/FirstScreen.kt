@@ -1,6 +1,7 @@
 package com.example.pdm_jc_app2_navegacion
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,44 +28,44 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 
-@Preview(showBackground = true)
 @Composable
-fun FirstScreen()
+fun FirstScreen(navController: NavController)
 {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .padding(8.dp)
+    Box(Modifier
+        .fillMaxSize()
+        .padding(8.dp)
     )
     {
-        Header(Modifier.align(Alignment.TopEnd))
-        Body(Modifier.align(Alignment.Center))
-        Footer(Modifier.align(Alignment.BottomCenter))
+        FSHeader(Modifier.align(Alignment.TopEnd))
+        FSBody(Modifier.align(Alignment.Center), navController)
     }
 }
 
 @Composable
-fun Header(modifier: Modifier)
+fun FSHeader(modifier: Modifier)
 {
     val activity = LocalContext.current as? Activity
 
@@ -75,7 +77,7 @@ fun Header(modifier: Modifier)
 }
 
 @Composable
-fun Body(modifier: Modifier) {
+fun FSBody(modifier: Modifier, navController: NavController) {
     var user by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var isLoginEnable by rememberSaveable { mutableStateOf(false) }
@@ -90,12 +92,10 @@ fun Body(modifier: Modifier) {
         User(user) { user = it }
         Spacer(modifier = Modifier.size(8.dp))
         Password(password) { password = it }
-        Spacer(modifier = Modifier.size(8.dp))
-        ForgotPassword(Modifier.align(Alignment.End))
         Spacer(modifier = Modifier.size(16.dp))
-        LoginButton(isLoginEnable)
+        LoginButton(user, password, isLoginEnable, navController)
         Spacer(modifier = Modifier.size(16.dp))
-        GuestButton()
+        GuestButton(navController)
     }
 }
 
@@ -190,22 +190,25 @@ fun Password(password: String, function: (String) -> Unit)
 }
 
 @Composable
-fun ForgotPassword(modifier: Modifier) {
-    Text(
-        text = "Forgot Password?",
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF4EA8E9),
-        modifier = modifier
-            .clickable { checkForgotPassword() }
-    )
-}
-
-@Composable
-fun LoginButton(isLoginEnable: Boolean)
+fun LoginButton(user: String, password: String, isLoginEnable: Boolean, navController: NavController)
 {
+    val openAlertDialog = remember{ mutableStateOf(false) }
+
+    when {
+        openAlertDialog.value == true ->
+            DialogErrorLogin(
+                onDismissRequest = { openAlertDialog.value = false },
+                onConfirmation = { openAlertDialog.value = false }
+            )
+    }
+
     Button(
-        onClick = { checkLogin() },
+        onClick = {
+            openAlertDialog.value = checkLogin(user, password)
+
+            if(openAlertDialog.value == false)
+                navController.navigate(Routes.Pantalla2.createRoute(user))
+        },
         enabled = isLoginEnable,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -221,10 +224,33 @@ fun LoginButton(isLoginEnable: Boolean)
 }
 
 @Composable
-fun GuestButton()
+fun DialogErrorLogin(
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit
+){
+    AlertDialog(
+        title = {
+            Text(text = "Error en Login")
+        },
+        text = {
+            Text(text = "El usuario o la contraseña son incorrectos.")
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(
+                onClick = onConfirmation
+            ) { Text("De acuerdo.") }
+        }
+    )
+}
+
+@Composable
+fun GuestButton(navController: NavController)
 {
     Button(
-        onClick = { checkLogin() },
+        onClick = {
+            navController.navigate(Routes.Pantalla2.createRoute("Invitado"))
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
@@ -238,51 +264,14 @@ fun GuestButton()
     }
 }
 
-@Composable
-fun Footer(modifier: Modifier)
+fun checkLogin(user: String, password: String): Boolean
 {
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ){
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF9F9F9F))
-                .height(1.dp)
-        )
+    val usersMap = mapOf<String, String>("user1" to "pw1", "user2" to "pw2", "user2" to "pw3")
+    var openAlertDialog = true
 
-        Spacer(modifier = Modifier.size(16.dp))
+    if(usersMap.containsKey(user))
+        if(usersMap[user] == password)
+            openAlertDialog = false
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Text(
-                text = "Don't have an account? ",
-                fontSize = 12.sp,
-                color = Color(0xFFB5B5B5)
-            )
-            Text(
-                text = "Sign up",
-                fontSize = 12.sp,
-                color = Color(0xFF4EA8E9),
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { createAccount() }
-            )
-        }
-    }
-}
-
-fun createAccount() {
-    TODO("Not yet implemented")
-}
-
-fun checkLogin() {
-    //TODO("Not yet implemented")
-}
-
-
-fun checkForgotPassword() {
-    TODO("Not yet implemented")
+    return openAlertDialog
 }
