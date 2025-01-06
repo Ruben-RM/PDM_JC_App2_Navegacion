@@ -54,16 +54,18 @@ fun Main()
             composable(
                 Routes.Pantalla3.route,
                 arguments = listOf(
-                    navArgument("numeroApostado") { type = NavType.FloatType },
-                    navArgument("numeroIntentos") { type = NavType.StringType })
+                    navArgument("numeroApostado") { type = NavType.IntType },
+                    navArgument("numeroIntentos") { type = NavType.IntType })
             ) {
-                var numApostado = it.arguments?.getFloat("numeroApostado")
-                if(numApostado == null) numApostado = 1f
+                var numApostado = it.arguments?.getInt("numeroApostado")
+                if(numApostado == null) numApostado = 1
+                var numIntentos = it.arguments?.getInt("numeroIntentos")
+                if(numIntentos == null) numIntentos = 1
 
                 ThirdScreen(
                     navigationController,
                     numApostado,
-                    it.arguments?.getString("numeroIntentos").orEmpty()
+                    numIntentos
                 )
             }
         }

@@ -55,7 +55,7 @@ fun SSBody (navController: NavController, modifier: Modifier, user: String)
     var numIntentos by rememberSaveable { mutableStateOf("") }
     var isPlayEnable by rememberSaveable { mutableStateOf(false) }
 
-    isPlayEnable = (numIntentos != "")
+    isPlayEnable = (numIntentos != "") and (numIntentos != "0") and (numIntentos != "00")
 
     Column(
         modifier = modifier
@@ -77,7 +77,7 @@ fun Saludo(modifier: Modifier, user: String)
 {
     Text(
         text = "Hola, $user",
-        fontSize = 20.sp,
+        fontSize = 30.sp,
         fontWeight = FontWeight.Bold,
         modifier = modifier
     )
@@ -88,6 +88,8 @@ fun Deslizador(sliderPosition: Float, function: (Float) -> Unit)
 {
     Column(horizontalAlignment = Alignment.CenterHorizontally)
     {
+        Text( text = "Número al que apuestas:" )
+
         Slider(
             value = sliderPosition,
             onValueChange = function,
@@ -144,7 +146,7 @@ fun BotonJugar(navController: NavController, isPlayEnable: Boolean, numeroAposta
 {
     Button(
         onClick = {
-            navController.navigate(Routes.Pantalla3.createRoute(numeroApostado, numIntentos))
+            navController.navigate(Routes.Pantalla3.createRoute(numeroApostado.toInt(), numIntentos.toInt()))
         },
         enabled = isPlayEnable,
         modifier = Modifier.fillMaxWidth(),
