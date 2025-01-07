@@ -57,16 +57,10 @@ fun Main()
                     navArgument("numeroApostado") { type = NavType.IntType },
                     navArgument("numeroIntentos") { type = NavType.IntType })
             ) {
-                var numApostado = it.arguments?.getInt("numeroApostado")
-                if(numApostado == null) numApostado = 1
-                var numIntentos = it.arguments?.getInt("numeroIntentos")
-                if(numIntentos == null) numIntentos = 1
+                val numApostado = it.arguments?.getInt("numeroApostado")?:1
+                val numIntentos = it.arguments?.getInt("numeroIntentos")?:1
 
-                ThirdScreen(
-                    navigationController,
-                    numApostado,
-                    numIntentos
-                )
+                ThirdScreen(navigationController, numApostado, numIntentos)
             }
         }
     }
